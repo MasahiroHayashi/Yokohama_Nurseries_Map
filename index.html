@@ -1,0 +1,1720 @@
+<!--
+//////////////////////////////////////////////////////////////////////
+//////*!           横浜市保育所＆幼稚園マップ ver1.0          !*//////
+//////*!                                                      !*//////
+//////*!          Copyright(c)2019  Masahiro Hayashi          !*//////
+//////*!              https://www.mirko.jp                    !*//////
+//////*!           Released under the MIT license             !*//////
+//////*!    http://opensource.org/licenses/mit-license.php    !*//////
+//////////////////////////////////////////////////////////////////////
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>横浜市保育所＆幼稚園マップ</title>
+<!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" />-->
+<link rel="stylesheet" href="leaflet.css" />
+<style type="text/css">
+html {
+	word-break: break-all; /*リンクを強制改行する*/
+	height: 100%;
+	margin: 0;
+}
+body {
+	background: #000 ;
+	width: 100% ;
+	height:100% ;
+	padding: 0 ;
+	margin: 0; 
+	font-family: "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+}
+#modal-content {
+	width: 800px ;
+	height: 90% ; //★これは最初のほうに。順番狂うと変になる
+	margin: 0 ;
+	//margin-left: -9px ;
+	padding: 10px 10px 10px 10px ;
+	//border: 2px solid #aaa ;
+	border-radius: 5px ;
+	background: #afeeee ;
+	position: fixed ;
+	display: none ;
+	z-index: 2000 ;
+	font-size:small ;
+	overflow: auto ; //★これは最後に。順番狂うと変になる
+}
+#modal-overlay {
+	z-index: 1000 ;
+	display: none ;
+	position: fixed ;
+	top: 0 ;
+	left: 0 ;
+	width: 100% ;
+	height: 100% ;
+	background-color: rgba( 0,0,0, 0.75 ) ;
+	//background-color: rgba( 204,204,255, 0.75 ) ;
+}
+.button-link {
+	color: #000 ;
+	font-size: x-large ;
+	font-weight: bold ;
+	text-decoration: none ;
+	//text-decoration: underline ;
+}
+.button-link:hover {
+	cursor: pointer ;
+	color: #f00 ;
+}
+table {
+	width: 100% ;
+	padding-bottom: 30px ;
+}
+.modal_table th {
+	width: 180px;
+	padding: 4px 4px 4px 8px;
+	text-align: left;
+	background: #e0ffff;
+	border-radius: 3px ;
+}
+.modal_table td {
+	padding: 4px 4px 4px 8px;
+	text-align: left;
+	color: #000;
+	background: #FFFFFF;
+	border-radius: 3px ;
+}
+@media only screen and (max-width:750px){ 
+	#modal-content {
+		left: 30px;
+		width: 100% ;
+		height: 90% ;
+		padding: 0 ;
+		font-size:x-small;
+	}
+	#modal-overlay {
+		top: 0 ;
+		left: 0 ;
+		width: 100% ;
+		height: 100% ;
+	}
+	table {
+		width:100%;
+	}
+	.modal_table th {
+		width:30%;
+		padding: 2px 2px 2px 4px;
+		font-size:x-small;
+	}
+	.modal_table td {
+		padding: 2px 2px 2px 4px;
+		font-size:x-small;
+	}
+}
+#kensaku {
+	z-index:500;
+	position: fixed;	/* 要素の位置を固定する */
+	top: 12px ; /* 基準の位置を画面の一番下に指定する */
+	left: 52px ; /* 基準の位置を画面の一番右に指定する */
+	display: none;
+}
+/* ボタン */
+a.cp_btn {
+	display: block;
+	background: #fff;
+	width: 100px;
+	padding: 10px;
+	text-align: center;
+	text-decoration: none;
+	color: #EC407A;
+	border: 2px solid #EC407A;
+	border-radius: 3px;
+	transition: .4s;
+}
+a.cp_btn:hover {
+	background: #EC407A;
+	color: #fff;
+}
+a.cp_btn2 {
+	font-size:x-large;
+	display: block;
+	width: 50%;
+	padding: 10px;
+	margin: 2em auto;
+	margin-top: 60px;
+	text-align: center;
+	text-decoration: none;
+	background: #fff;
+	color: #0000cd;
+	border: 2px solid #0000cd;
+	border-radius: 10px;
+	transition: .4s;
+}
+a.cp_btn2:hover {
+	background: #0000cd;
+	color: #fff;
+	border: 2px solid #fff;
+}
+/* セレクトボックス */
+.cp_ipselect {
+	overflow: hidden;
+	width: 90%;
+	margin: 2em auto;
+	text-align: center;
+}
+.cp_ipselect select {
+	font-size:x-large;
+	width: 100%;
+	padding-right: 1em;
+	cursor: pointer;
+	text-indent: 0.01px;
+	text-overflow: ellipsis;
+	border: none;
+	outline: none;
+	background: transparent;
+	background-image: none;
+	box-shadow: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+.cp_ipselect select::-ms-expand {
+    display: none;
+}
+.cp_ipselect.cp_sl04 {
+	padding: 10px;
+	position: relative;
+	border-radius: 50px;
+	
+	border: 1px solid #1e90ff;
+	background: #e0ffff;
+	color: #0000cd;
+	
+}
+.cp_ipselect.cp_sl04::before {
+	position: absolute;
+	top: 28px;
+	right: 1.5em;
+	width: 0;
+	height: 0;
+	padding: 0;
+	content: '';
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 8px solid #0000cd;
+	pointer-events: none;
+}
+.cp_ipselect.cp_sl04 select {
+	padding: 8px 38px 8px 8px;
+	
+	color: #0000cd;
+}
+@media only screen and (max-width:750px){ 
+	a.cp_btn2 {
+		font-size:medium;
+		margin-top: 30px;
+	}
+	.cp_ipselect select {
+		font-size:medium;
+	}
+}
+
+/*以下ローディングアニメ*/
+.loader {
+  margin: 70px auto;
+  font-size: 12px;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-animation: load5 1.1s infinite ease;
+  animation: load5 1.1s infinite ease;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+}
+@-webkit-keyframes load5 {
+  0%,
+  100% {
+    box-shadow: 0em -2.6em 0em 0em #00ffff, 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.5), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.7);
+  }
+  12.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.7), 1.8em -1.8em 0 0em #00ffff, 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.5);
+  }
+  25% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.5), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.7), 2.5em 0em 0 0em #00ffff, 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  37.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.5), 2.5em 0em 0 0em rgba(0, 255, 255, 0.7), 1.75em 1.75em 0 0em #00ffff, 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.5), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.7), 0em 2.5em 0 0em #00ffff, -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  62.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.5), 0em 2.5em 0 0em rgba(0, 255, 255, 0.7), -1.8em 1.8em 0 0em #00ffff, -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  75% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.5), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.7), -2.6em 0em 0 0em #00ffff, -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  87.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.5), -2.6em 0em 0 0em rgba(0, 255, 255, 0.7), -1.8em -1.8em 0 0em #00ffff;
+  }
+}
+@keyframes load5 {
+  0%,
+  100% {
+    box-shadow: 0em -2.6em 0em 0em #00ffff, 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.5), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.7);
+  }
+  12.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.7), 1.8em -1.8em 0 0em #00ffff, 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.5);
+  }
+  25% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.5), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.7), 2.5em 0em 0 0em #00ffff, 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  37.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.5), 2.5em 0em 0 0em rgba(0, 255, 255, 0.7), 1.75em 1.75em 0 0em #00ffff, 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.5), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.7), 0em 2.5em 0 0em #00ffff, -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.2), -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  62.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.5), 0em 2.5em 0 0em rgba(0, 255, 255, 0.7), -1.8em 1.8em 0 0em #00ffff, -2.6em 0em 0 0em rgba(0, 255, 255, 0.2), -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  75% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.5), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.7), -2.6em 0em 0 0em #00ffff, -1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2);
+  }
+  87.5% {
+    box-shadow: 0em -2.6em 0em 0em rgba(0, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(0, 255, 255, 0.2), 2.5em 0em 0 0em rgba(0, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(0, 255, 255, 0.2), 0em 2.5em 0 0em rgba(0, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(0, 255, 255, 0.5), -2.6em 0em 0 0em rgba(0, 255, 255, 0.7), -1.8em -1.8em 0 0em #00ffff;
+  }
+}
+</style>
+<!-- <script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script> -->
+<script src="leaflet.js"></script>
+<script>
+
+//グローバル変数
+var global_rows ;      //スパークル結果
+var global_csvResult ; //もともとのCSV結果
+var global_csvArr ;    //緯度経度とれないもの
+var global_pois = [];  //ジオコーディング結果を入れる箱 [緯度,経度のみ] 配列
+var global_t = 0
+var map ;
+var kuStr = "" ;
+var joStr = "" ;
+var syStr = "" ;
+var knStr = "" ;
+var taStr = "" ;
+
+function getCSV(){
+	document.getElementById("kensaku").style.display = "none";
+	global_pois = [];  //グローバルをリセット
+	global_t = 0;
+	var req = new XMLHttpRequest(); // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+	req.open("get", "yokohama.csv"+"?"+(new Date()).getTime() , true); // アクセスするファイルを指定（キャッシュを読まない工夫）
+	req.send(null); // HTTPリクエストの発行
+	// レスポンスが返ってきたらconvertCSVtoArray()を呼ぶ	
+	req.onload = function(){
+		convertCSVtoArray(req.responseText); 
+	}
+}
+function convertCSVtoArray(str){ 
+	var csvResult = [];
+	var tmp = str.split("\r\n"); // 改行を区切り文字として行を要素とした配列を生成
+	// 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
+	for(var i=0;i<tmp.length;++i){
+		csvResult[i] = tmp[i].split(',');
+	}
+	execute(csvResult) ;
+}
+function execute(csvResult) {
+	const endpoint = "ajax.php";
+    var method = "POST";
+    var query =  'select * '; 
+        query += 'where { '; 
+        query += '?s ic:ID [ic:識別値 ?id ]; '; 
+        query += 'ic:住所 [ ic:表記 ?jusho ';
+		if(kuStr != "" && kuStr != "all"){
+			query += '; ic:区 "' + kuStr + '"' ;	
+		}
+		query += ']. '; 
+        query += 'OPTIONAL{ ?s rdfs:label ?name.}'; //5000番台の事業所内保育事業の名称がないのでOPTIONALにしてる
+		if(joStr != ""){
+			if(joStr == "syubetsu"){
+				query += 'FILTER CONTAINS(STR(?s),"' + syStr + '")' ;	
+			}else if(joStr == "kahi"){
+				query += '?s dsv:入所可能人数 [ic:種別 "' + knStr + '"; ic:数値 ?h_kanou_ninzu]. ' ;	
+				query += 'FILTER(xsd:decimal(?h_kanou_ninzu)>0)' ;	
+			}else if(joStr == "taiki"){
+				query += 'FILTER CONTAINS(STR(?s),"保育所型")' ;	
+				if(taStr == "0_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "0歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}else if(taStr == "1_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "1歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}else if(taStr == "2_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "2歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}else if(taStr == "3_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "3歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}else if(taStr == "4_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "4歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}else if(taStr == "5_0"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "5歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)=0)' ;	
+				}
+				if(taStr == "0_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "0歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}else if(taStr == "1_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "1歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}else if(taStr == "2_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "2歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}else if(taStr == "3_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "3歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}else if(taStr == "4_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "4歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}else if(taStr == "5_12"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "5歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>0)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<3)' ;	
+				}
+				if(taStr == "0_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "0歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}else if(taStr == "1_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "1歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}else if(taStr == "2_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "2歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}else if(taStr == "3_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "3歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}else if(taStr == "4_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "4歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}else if(taStr == "5_35"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "5歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>2)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<6)' ;	
+				}
+				if(taStr == "0_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "0歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}else if(taStr == "1_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "1歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}else if(taStr == "2_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "2歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}else if(taStr == "3_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "3歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}else if(taStr == "4_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "4歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}else if(taStr == "5_510"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "5歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>5)' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)<11)' ;	
+				}
+				if(taStr == "0_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "0歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}else if(taStr == "1_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "1歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}else if(taStr == "2_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "2歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}else if(taStr == "3_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "3歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}else if(taStr == "4_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "4歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}else if(taStr == "5_11"){
+					query += '?s dsv:入所待ち人数 [ic:種別 "5歳児"; ic:数値 ?h_machi_ninzu].' ;	
+					query += 'FILTER(xsd:decimal(?h_machi_ninzu)>10)' ;	
+				}					
+			}
+		}
+		query += '}' ;	
+    sparqlQuery(query,endpoint,method,csvResult) ;
+} 
+function sparqlQuery(queryStr,endpoint,method,csvResult) { // XMLHttpRequestでクエリ送信 
+	let querypart = queryStr;
+	const xmlhttp = new XMLHttpRequest();
+	xmlhttp.open(method, endpoint, true);
+	xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+	xmlhttp.setRequestHeader("Accept", "application/sparql-results+json");
+	xmlhttp.onreadystatechange = function() {
+		if(xmlhttp.readyState == 4) {
+			if(xmlhttp.status == 200 || xmlhttp.status == 201 ) {
+				onSuccessQuery(xmlhttp.responseText,csvResult);
+			} else {
+				document.getElementById("results").innerHTML = "通信エラー又はスパークル構文エラー<br>HTTP通信ステータス：" + xmlhttp.status + "<br>" + xmlhttp.responseText ;
+			}
+		}
+	}
+	xmlhttp.send('data=' + querypart);
+}
+function onSuccessQuery(text,csvResult) { // 結果(JSON文字列)を配列に格納 
+    const jsonObj = JSON.parse(text); 
+    const head = jsonObj.head.vars; 
+    let rows = jsonObj.results.bindings; 
+    //スパークル結果とCSV緯度経度のマッチング
+    for(let i=0 ; i<rows.length ; i++) {
+    	for(let j=0 ; j<csvResult.length ; j++) {
+			if(rows[i]["id"].value == csvResult[j][0] ){
+				rows[i].lat = csvResult[j][1];
+				rows[i].long = csvResult[j][2];
+				break;
+			}
+		}
+	}
+    //マッチングできないものを抽出しcsvArrに格納
+    var csvArr = [];
+    var c = 0;
+    for(let i=0 ; i<rows.length ; i++) {
+		if(!rows[i]["lat"]){
+			csvArr[c] = [];
+			csvArr[c][0] = rows[i]["s"].value;
+			csvArr[c][1] = "神奈川県横浜市" + rows[i]["jusho"].value;
+			c++;
+		}
+    }
+	if(csvArr[0] == null){
+		//すべてマッチングできれいればジオコーディングは飛ばす
+		//グローバル関数に代入
+		global_rows = rows ;  //スパークル結果
+		makeMap();
+	}else{
+		//マッチングできていないものがあればジオコーディングでマッチングさせる
+		addressToPoint(rows,csvArr,csvResult)
+	}
+} 
+function addressToPoint(rows,csvArr,csvResult) {
+	//グローバル変数に代入
+	global_rows = rows ;          //スパークル結果
+	global_csvResult = csvResult; //もともとのCSV結果
+	global_csvArr = csvArr;       //緯度経度とれないもの
+
+	//YahooジオコーダAPIにリクエスト
+	var tcount = 0;
+	var countup = function(){
+		var req = 'https://map.yahooapis.jp/geocode/V1/geoCoder?appid=dj0zaiZpPXJqcmt4NnF2WHZsayZzPWNvbnN1bWVyc2VjcmV0Jng9N2U-&results=1&output=json&callback=callback&query=';  
+		    req += encodeURI(csvArr[tcount][1]) ; 
+		var apiScript = document.createElement('script');
+		apiScript.src = req; 
+		document.body.appendChild(apiScript);
+		tcount++;
+	}
+	//連続リクエストを防ぐため，インターバルを入れる
+	var id = setInterval(function(){
+		countup();
+		if(tcount >= csvArr.length){　
+			clearInterval(id);
+		}
+	}, 200); //★★★★★★★★★★★★★★★★★★★★★★★★ ここ後で２００くらいにする
+}
+function callback(jsonp){
+
+	//ID番号の取得
+	var str = String(global_csvArr[global_t]);
+    var index = str.indexOf(",");
+	var str2 = str.slice(0,index)
+	var idStr = str2.slice(45)
+	
+	//ジオコーディング結果が返ってきたものは，global_poisへスプリットして入れる。無いものはx,xを代入
+	var ajaxTxt = "";
+	if(jsonp.ResultInfo["Count"] > 0){
+		global_pois[global_t] = (jsonp.Feature[0]["Geometry"].Coordinates).split(","); 
+		ajaxTxt = idStr + "," + global_pois[global_t][1] + "," + global_pois[global_t][0] ;
+		
+	}else{
+		global_pois[global_t] = ["x","x"]; 
+		ajaxTxt = idStr + ",x,x";
+		
+		//★★★★★★★★★★★★★★★★★★★★★★★★ googleジオコーダーAPIを挟むならここ
+	}
+	
+	//ジオコーディング結果をPHPに送りCSVに追記
+	$.ajax({
+	type: "POST",
+	url: "addcsv.php",
+	data: {"item": ajaxTxt },
+		//success: function(html){
+		//	alert(html);
+		//}
+	});
+	
+	global_t ++;
+	
+	//最後まで行ったときの処理
+	if(global_t == global_csvArr.length){
+		//緯度経度がとれなかったデータ（global_csvArr）に，ジオコーディングした緯度経度（global_pois）を追加
+		for(let i=0 ; i<global_csvArr.length ; i++) {
+			global_csvArr[i].push(global_pois[i][1]);
+			global_csvArr[i].push(global_pois[i][0]);
+    	}
+		
+		//スパークル結果に，追加の緯度経度を再マッチング
+		for(let i=0 ; i<global_rows.length ; i++) {
+			for(let j=0 ; j<global_csvArr.length ; j++) {
+				if(global_rows[i].s.value == global_csvArr[j][0]){
+					global_rows[i].lat = global_csvArr[j][2];
+					global_rows[i].long = global_csvArr[j][3];
+					//alert(global_rows[i].lat); //ジオコーディングできてるかチェック
+					break;
+				}
+			}
+		}
+		makeMap();
+	}
+}
+//----------------------------------------------------------------
+function makeMap() {
+	if(kuStr != "" || joStr != "" || syStr != "" || knStr != "" || taStr != ""){
+		map.remove();
+	}
+	//ポップアップオブジェクトを作成
+	let popupText = [];
+	let t = "";
+	let s ;
+	var sss ;
+	var aaa ;
+	var name = "";
+	for(let i=0 ; i<global_rows.length ; i++) {
+		if(global_rows[i].name){
+			name = global_rows[i].name.value;
+		}else{
+			name = "" ;
+		}
+	
+		//★★★★★★★★★★★★★★★★★★★★★★この辺、改造の余地ありか？？？
+		
+		t  = "<p style='margin:8px;'>施設ID：" + global_rows[i].id.value + "</p><p style='margin:8px;'>名　称：" + name + "</p><p style='margin:8px;'>所在地：" +  global_rows[i].jusho.value + "</p>" ;
+		t += "<p style='text-align:center;font-size:125%;'><a href='javascript:void(0);' onclick='openModal(";
+		t += global_rows[i].id.value ;
+		t += ");'>★ 施設の詳細情報を表示 ★</a></p>";
+
+		popupText.push(L.popup({ maxWidth: 250 }).setContent(t));
+	}
+	var centerpoint = [35.443832, 139.637781]; //地図の中心座標（横浜）
+	if(kuStr == "鶴見区"){
+		centerpoint = [35.508428, 139.682443];
+	}else if(kuStr == "神奈川区"){
+		centerpoint = [35.477100, 139.629308];
+	}else if(kuStr == "西区"){
+		centerpoint = [35.453551, 139.616817];
+	}else if(kuStr == "中区"){
+		centerpoint = [35.444745, 139.642170];
+	}else if(kuStr == "南区"){
+		centerpoint = [35.434364, 139.627447];
+	}else if(kuStr == "保土ケ谷区"){
+		centerpoint = [35.459999, 139.596056];
+	}else if(kuStr == "磯子区"){
+		centerpoint = [35.402433, 139.618539];
+	}else if(kuStr == "金沢区"){
+		centerpoint = [35.338145, 139.624490];
+	}else if(kuStr == "港北区"){
+		centerpoint = [35.519081, 139.633024];
+	}else if(kuStr == "戸塚区"){
+		centerpoint = [35.400024, 139.533454];
+	}else if(kuStr == "港南区"){
+		centerpoint = [35.400932, 139.592492];
+	}else if(kuStr == "旭区"){
+		centerpoint = [35.474787, 139.544787];
+	}else if(kuStr == "緑区"){
+		centerpoint = [35.512446, 139.537999];
+	}else if(kuStr == "瀬谷区"){
+		centerpoint = [35.466232, 139.498817];
+	}else if(kuStr == "栄区"){
+		centerpoint = [35.364714, 139.553812];
+	}else if(kuStr == "泉区"){
+		centerpoint = [35.417819, 139.488706];
+	}else if(kuStr == "青葉区"){
+		centerpoint = [35.553021, 139.536917];
+	}else if(kuStr == "都筑区"){
+		centerpoint = [35.544951, 139.570621];
+	}
+	//マップをセット
+	map = L.map('mapcontainer', { zoomControl: true });
+	//地図中心とズームレベルをセット
+	map.setView(centerpoint, 14);
+	//スケールの表示
+	L.control.scale({maxWidth:200,position:'bottomright',imperial:false}).addTo(map);
+	//地理院地図の標準地図タイル
+	var gsi =L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', 
+		{attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"});
+	//地理院地図の淡色地図タイル
+	var gsipale = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+		{attribution: "<a href='https://portal.cyberjapan.jp/help/termsofuse.html' target='_blank'>地理院タイル</a>"});
+	//地理院地図の白地図タイル
+	var gsiblank = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/blank/{z}/{x}/{y}.png',
+		{attribution: "<a href='https://portal.cyberjapan.jp/help/termsofuse.html' target='_blank'>地理院タイル</a>"});
+	//オープンストリートマップのタイル
+	var osm = L.tileLayer('https://tile.openstreetmap.jp/{z}/{x}/{y}.png',
+		{  attribution: "<a href='https://osm.org/copyright' target='_blank'>OpenStreetMap</a> contributors" });
+	//baseMapsオブジェクトのプロパティに3つのタイルを設定
+	var baseMaps = {
+		"オープンストリートマップ"  : osm,
+		"地理院地図" : gsi,
+		"地理院地図（淡色）" : gsipale,
+		"地理院地図（白地図）" : gsiblank
+	};
+	//layersコントロールにbaseMapsオブジェクトを設定して地図に追加
+	//コントロール内にプロパティ名が表示される
+	L.control.layers(baseMaps).addTo(map);
+	osm.addTo(map);
+	//アイコンの設定
+	var markerIconH = L.icon({ //保育所型
+		iconUrl: 'marker_h.png',
+		iconRetinaUrl: 'marker_h.png',
+		iconAnchor: [-4, -4],
+		popupAnchor: [30, 10],
+	});
+	var markerIconY = L.icon({ //幼稚園型
+		iconUrl: 'marker_y.png',
+		iconRetinaUrl: 'marker_y.png',
+		iconAnchor: [4, 4],
+		popupAnchor: [10, 5],
+	});
+	
+	var markerIcon = markerIconH ;
+
+	//★★★★★★★★★★★★★★★★★★★★★★★★★★★ポップアップやめたいがうまく動作せず。
+	//var modal2Str ;	
+	
+	//マーカーにポップアップを紐付けする。同時にbindTooltipでツールチップも追加
+	for(let i=0 ; i<global_rows.length ; i++) {
+		//マーカーアイコンの設定
+		if(String(global_rows[i].id.value).length == 9 ){ //保育所型
+			markerIcon = markerIconH ;
+		}else{ //幼稚園型
+			markerIcon = markerIconY ;
+		}
+		if(global_rows[i].lat != "x"){
+			if(global_rows[i].name){
+				name = global_rows[i].name.value;
+			}else{
+				name = "" ;
+			}
+
+			//★★★★★★★★★★★★★★★★★★★★★★★★★★★ポップアップやめたいがうまく動作せず。
+			//modal2Str = function(){openModal(global_rows[i].id.value)} ;
+			//L.marker([global_rows[i].lat , global_rows[i].long],{icon: markerIcon}).bindTooltip(name).addTo(map).on( 'click', modal2Str);	
+			
+			L.marker([global_rows[i].lat , global_rows[i].long],{icon: markerIcon}).bindPopup(popupText[i]).bindTooltip(name).addTo(map);
+		}
+	}
+	document.getElementById("kensaku").style.display = "block";
+}
+function kensakuShisetsu() {
+	kuStr = document.formArea.area.options[ document.formArea.area.selectedIndex ].value; //グローバル変数に代入
+	joStr = document.formS.jyouken.options[ document.formS.jyouken.selectedIndex ].value; //グローバル変数に代入
+	syStr = document.formA1.syubetsu.options[ document.formA1.syubetsu.selectedIndex ].value; //グローバル変数に代入
+	knStr = document.formA2.kanou.options[ document.formA2.kanou.selectedIndex ].value; //グローバル変数に代入	
+	taStr = document.formA3.taiki.options[ document.formA3.taiki.selectedIndex ].value; //グローバル変数に代入
+	
+	getCSV();
+	
+	//モーダルウインドウを閉じる
+	$( "#modal-content,#modal-overlay" ).fadeOut( "slow" , function(){
+		$('#modal-overlay').remove() ;
+	} ) ;
+}
+function kensakuChange(){
+	const num = document.formS.jyouken.selectedIndex;
+	const jyouken = document.formS.jyouken.options[num].value; 
+	document.getElementById("syubetsu").selectedIndex = 0;
+	document.getElementById("kanou").selectedIndex = 0;
+	document.getElementById("taiki").selectedIndex = 0;
+	if(jyouken=="syubetsu"){
+		document.getElementById("formA1").style.display = "block";
+		document.getElementById("formA2").style.display = "none";
+		document.getElementById("formA3").style.display = "none";
+	}else if(jyouken=="kahi"){
+		document.getElementById("formA1").style.display = "none";
+		document.getElementById("formA2").style.display = "block";
+		document.getElementById("formA3").style.display = "none";
+	}else if(jyouken=="taiki"){
+		document.getElementById("formA1").style.display = "none";
+		document.getElementById("formA2").style.display = "none";
+		document.getElementById("formA3").style.display = "block";
+	}else{
+		document.getElementById("formA1").style.display = "none";
+		document.getElementById("formA2").style.display = "none";
+		document.getElementById("formA3").style.display = "none";	
+	}
+}
+function makeModalContents(ii){
+	if(ii=="9999999999999"){
+		var kText = "";
+		kText += "<div style='text-align:right;'><a class='button-link' href='javascript:void(0);' onclick='closeModal();'>×</a></div>";
+		kText += '<div class="cp_ipselect cp_sl04">' ;
+		kText += '<form name="formArea">';
+		kText += '<select name="area">';
+		kText += '<option value="all" selected>横浜市（全区）</option>';
+		kText += '<option value="鶴見区">鶴見区</option>';
+		kText += '<option value="神奈川区">神奈川区</option>';
+		kText += '<option value="西区">西区</option>';
+		kText += '<option value="中区">中区</option>';
+		kText += '<option value="南区">南区</option>';
+		kText += '<option value="保土ケ谷区">保土ケ谷区</option>';
+		kText += '<option value="磯子区">磯子区</option>';
+		kText += '<option value="金沢区">金沢区</option>';
+		kText += '<option value="港北区">港北区</option>';
+		kText += '<option value="戸塚区">戸塚区</option>';
+		kText += '<option value="港南区">港南区</option>';
+		kText += '<option value="旭区">旭区</option>';
+		kText += '<option value="緑区">緑区</option>';
+		kText += '<option value="瀬谷区">瀬谷区</option>';
+		kText += '<option value="栄区">栄区</option>';
+		kText += '<option value="泉区">泉区</option>';
+		kText += '<option value="青葉区">青葉区</option>';
+		kText += '<option value="都筑区">都筑区</option>';
+		kText += '</select>';
+		kText += '</form>';	
+		kText += '</div>' ;	
+		kText += '<div class="cp_ipselect cp_sl04">' ;
+		kText += '<form name="formS">';
+		kText += '<select name="jyouken" onChange="kensakuChange()">';
+		kText += '<option value="" selected>検索条件なし（すべての施設を表示）</option>';
+		kText += '<option value="syubetsu">施設の種別で検索</option>';
+		kText += '<option value="kahi">調査日現在の入所の可否で検索（保育所型施設のみ）</option>';
+		kText += '<option value="taiki">調査日現在の待機児童数で検索（保育所型施設のみ）</option>';
+		kText += '</select>';
+		kText += '</form>';
+		kText += '</div>' ;
+		kText += '<div class="cp_ipselect cp_sl04" id="formA1" style="display:none;">' ;
+		kText += '<form name="formA1">';
+		kText += '<select name="syubetsu" id="syubetsu">';
+		kText += '<option value="幼稚園型" selected>幼稚園型（幼稚園／認定こども園）</option>';
+		kText += '<option value="保育所型">保育所型（すべての保育施設）</option>';
+		kText += '<option value="保育所型/10">　- 保育所型のうち【認可保育所】</option>';
+		kText += '<option value="保育所型/20">　- 保育所型のうち【幼保連携型認定こども園】</option>';
+		kText += '<option value="保育所型/30">　- 保育所型のうち【小規模保育事業】</option>';
+		kText += '<option value="保育所型/40">　- 保育所型のうち【家庭的保育事業】</option>';
+		kText += '<option value="保育所型/50">　- 保育所型のうち【事業所内保育事業】</option>';
+		kText += '<option value="保育所型/60">　- 保育所型のうち【横浜保育室】</option>';
+		kText += '<option value="保育所型/70">　- 保育所型のうち【届出済認可外保育施設】</option>';
+		kText += '</select>';
+		kText += '</form>';
+		kText += '</div>' ;
+		kText += '<div class="cp_ipselect cp_sl04" id="formA2" style="display:none;">' ;
+		kText += '<form name="formA2">';
+		kText += '<select name="kanou" id="kanou">';
+		kText += '<option value="n0" selected>０歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '<option value="1歳児">１歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '<option value="2歳児">２歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '<option value="3歳児">３歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '<option value="4歳児">４歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '<option value="5歳児">５歳児の入所が可能（入所可能人数が１人以上）</option>';
+		kText += '</select>';
+		kText += '</form>';
+		kText += '</div>' ;
+		kText += '<div class="cp_ipselect cp_sl04" id="formA3" style="display:none;">' ;
+		kText += '<form name="formA3">';
+		kText += '<select name="taiki" id="taiki">';
+		kText += '<option value="0_0" selected>０歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option value="1_0">１歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option value="2_0">２歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option value="3_0">３歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option value="4_0">４歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option value="5_0">５歳児の待機児童（入所待ち人数）が０人</option>';
+		kText += '<option disabled>----------------------------</option>';
+		kText += '<option value="0_12">０歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option value="1_12">１歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option value="2_12">２歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option value="3_12">３歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option value="4_12">４歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option value="5_12">５歳児の待機児童（入所待ち人数）が１～２人</option>';
+		kText += '<option disabled>----------------------------</option>';
+		kText += '<option value="0_35">０歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option value="1_35">１歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option value="2_35">２歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option value="3_35">３歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option value="4_35">４歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option value="5_35">５歳児の待機児童（入所待ち人数）が３～５人</option>';
+		kText += '<option disabled>----------------------------</option>';
+		kText += '<option value="0_510">０歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option value="1_510">１歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option value="2_510">２歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option value="3_510">３歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option value="4_510">４歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option value="5_510">５歳児の待機児童（入所待ち人数）が６～１０人</option>';
+		kText += '<option disabled>----------------------------</option>';
+		kText += '<option value="0_11">０歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '<option value="1_11">１歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '<option value="2_11">２歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '<option value="3_11">３歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '<option value="4_11">４歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '<option value="5_11">５歳児の待機児童（入所待ち人数）が１１人以上</option>';
+		kText += '</select>';
+		kText += '</form>';
+		kText += '</div>' ;
+		kText += '<a href="javascript:void(0);" onclick="kensakuShisetsu();" class="cp_btn2">検　索</a>';
+    	document.getElementById('modal-content').innerHTML = kText ;
+	}else{
+		const endpoint = "ajax.php";
+		var method = "POST";
+		let subject ;
+		if(String(ii).length == 9 ){
+			subject = "<https://data.city.yokohama.lg.jp/lod/v2/保育所型/" + ii + "> ";
+		}else{
+			subject = "<https://data.city.yokohama.lg.jp/lod/v2/幼稚園型/" + ii + "> ";
+		}
+		var query =  'select * where {{ '; 
+			query += subject ; 
+			query += 'ic:メタデータ / ic:日付 [ic:標準型日付 ?a_joho_koshinbi] . '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:ID [ic:識別値 ?a_id ] . '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'rdfs:label ?a_name  . '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			if(String(ii).length == 9 ){ //保育所型
+				query += 'ic:種別コード [ic:種別 ?a_shubetsu ; ic:識別値 ?a_shubetsuData ] . '; 
+			}else{ //幼稚園型
+				query += 'ic:種別コード ?bnX . '; 
+				query += 'OPTIONAL {?bnX ic:種別 ?a_shubetsu .} '; 
+				query += 'OPTIONAL {?bnX ic:識別値 ?a_shubetsuData .} '; 
+			}
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:住所 ?bn5 . '; 
+			query += 'OPTIONAL {?bn5 ic:表記 ?a_jusho .} '; 
+			query += 'OPTIONAL {?bn5 ic:区 ?a_ku .} '; 
+			query += 'OPTIONAL {?bn5 ic:郵便番号 ?a_yuubin.} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:アクセス ?bn5_2 . '; 
+			query += 'OPTIONAL {?bn5_2 ic:備考 ?h_ikikata .} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:連絡先 ?bn6 . '; 
+			query += 'OPTIONAL{ ?bn6 ic:電話番号 ?a_tel.} '; 
+			query += 'OPTIONAL{ ?bn6 ic:FAX番号  ?a_fax.} '; 
+			query += 'OPTIONAL{ ?bn6 ic:Webサイト ?a_Web.} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:関与 ?bn8 .'; 
+			query += 'OPTIONAL{ ?bn8 ic:関与者 [ic:名称 [ic:表記 ?a_secchisha]].} '; 
+			query += 'OPTIONAL{ ?bn8 ic:関与者 [ic:氏名 [ic:表記 ?y_encho]].} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:記述 ?bn10 . '; 
+			query += 'OPTIONAL{ ?bn10 ic:種別 ?a_sonotaL .} '; 
+			query += 'OPTIONAL{ ?bn10 ic:説明 ?a_sonotaD .} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:利用可能時間 ?bn6_2 . '; 
+			query += 'OPTIONAL{ ?bn6_2 ic:種別 ?h_syubetsu } '; 
+			query += 'OPTIONAL{ ?bn6_2 ic:説明 ?h_setsumei } '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:建物 ?bn7 . '; 
+			query += 'OPTIONAL{ ?bn7 ic:建物面積 [ic:数値 ?h_tatemono]. } '; 
+			query += 'OPTIONAL{ ?bn7 ic:敷地面積 [ic:数値 ?h_shikichi]. } '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'dsv:評価 ?bn9 . '; 
+			query += '?bn9 dsv:評価ステータス ?h_dai3sya . '; 
+			query += 'OPTIONAL{ ?bn9 dsv:結果公表日時 ?h_dai3date .} '; 
+			query += 'OPTIONAL{ ?bn9 ic:参照 [ic:参照先 ?h_dai3URL ] .} '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:収容人数 [ic:種別 ?h_syuyou ; ic:数値 ?h_syuyouninzu ]. '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'dsv:入所児童数 ?bn12 . '; 
+			query += 'OPTIONAL{ ?bn12  ic:種別 ?h_nyusyojidou .} '; 
+			query += 'OPTIONAL{ ?bn12 ic:数値 ?h_nyusyojidou_ninzu .} '; 
+			query += 'OPTIONAL{ ?bn12 ic:メタデータ / ic:日付 / ic:標準型日付 ?h_nyusyojidou_meta. } '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'dsv:入所可能人数 ?bn13 . '; 
+			query += 'OPTIONAL{ ?bn13  ic:種別 ?h_kanou .} '; 
+			query += 'OPTIONAL{ ?bn13 ic:数値 ?h_kanou_ninzu .} '; 
+			query += 'OPTIONAL{ ?bn13 ic:メタデータ / ic:日付 / ic:標準型日付 ?h_kanou_meta. } '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'dsv:入所待ち人数 ?bn14 . '; 
+			query += 'OPTIONAL{ ?bn14  ic:種別 ?h_machi .} '; 
+			query += 'OPTIONAL{ ?bn14 ic:数値 ?h_machi_ninzu .} '; 
+			query += 'OPTIONAL{ ?bn14 ic:メタデータ/ ic:日付 / ic:標準型日付 ?h_machi_meta. } '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:備考 ?y_bikou . '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'ic:料金 [ ic:種別 ?y_ryokins ; ic:説明 ?y_ryokin ]. '; 
+			query += '}UNION{ '; 
+			query += subject ; 
+			query += 'dsv:認可年月日 ?y_ninka . }}ORDER BY ?h_syuyou ?h_nyusyojidou ?h_kanou ?h_machi ?h_syubetsu ?a_sonotaL ?y_ryokins DESC(?a_shubetsu)'; 
+		sparqlQuery2(query,endpoint,method,ii) ;
+	}
+};
+function sparqlQuery2(queryStr,endpoint,method,ii) { // XMLHttpRequestでクエリ送信 
+	let querypart = queryStr;
+	const xmlhttp = new XMLHttpRequest();
+	xmlhttp.open(method, endpoint, true);
+	xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+	xmlhttp.setRequestHeader("Accept", "application/sparql-results+json");
+	xmlhttp.onreadystatechange = function() {
+		if(xmlhttp.readyState == 4) {
+			if(xmlhttp.status == 200 || xmlhttp.status == 201 ) {
+				onSuccessQuery2(xmlhttp.responseText,ii);
+			} else {
+				document.getElementById("results").innerHTML = "通信エラー又はスパークル構文エラー<br>HTTP通信ステータス：" + xmlhttp.status + "<br>" + xmlhttp.responseText ;
+			}
+		}
+	}
+	xmlhttp.send('data=' + querypart);
+}
+function onSuccessQuery2(text,ii) { // 結果(JSON文字列)を配列に格納 
+	const jsonObj = JSON.parse(text); 
+	const head = jsonObj.head.vars; 
+	const rows = jsonObj.results.bindings; 
+	var mtext = "";
+	var mJson = {} ;
+	var mArr = [] ;
+	var name = "" ;
+	for(let i=0 ; i<rows.length ; i++) {
+		if(rows[i].a_joho_koshinbi){
+			mArr.push('施設情報の更新日');
+			mArr.push(rows[i].a_joho_koshinbi.value);
+		}else if(rows[i].a_id){
+			mArr.push('施設ＩＤ');
+			mArr.push(rows[i].a_id.value);
+		}else if(rows[i].a_name){
+			mArr.push('施設名');
+			if(rows[i].a_name){
+				name = rows[i].a_name.value
+			}
+			mArr.push(name);
+		}else if(rows[i].a_shubetsu){
+			if(String(ii).length == 9 ){ //保育所型
+				mArr.push(rows[i].a_shubetsu.value);
+				mArr.push(rows[i].a_shubetsuData.value);
+			}else{ //幼稚園型
+				if(rows[i].a_shubetsu){ //種別がある
+					if(rows[i].a_shubetsuData){ //種別データ内容がある
+						if(rows[i].a_shubetsu.value != "設置形態"){ //設置形態はコード「1」「3」の意味がわかんないので表示を外している。
+							mArr.push(rows[i].a_shubetsu.value);
+							mArr.push(rows[i].a_shubetsuData.value);
+						}
+					}else if(rows[i].a_shubetsu.value == "認定こども園" || rows[i].a_shubetsu.value == "新制度移行園"){  //種別データ内容がなく、種別が「認定こども園」又は「新制度移行園」
+						mArr.push(rows[i].a_shubetsu.value);
+						mArr.push('対象外');
+					}
+				}
+			}
+		}else if(rows[i].a_ku){
+			mArr.push('行政区');
+			mArr.push(rows[i].a_ku.value);
+			mArr.push('所在地');
+			mArr.push(rows[i].a_jusho.value);
+			if(rows[i].a_yuubin){
+				mArr.push('郵便番号');
+				mArr.push(rows[i].a_yuubin.value);
+			}
+		}else if(rows[i].h_ikikata){
+			mArr.push('行き方');
+			mArr.push(rows[i].h_ikikata.value);
+		}else if(rows[i].a_tel){
+			mArr.push('電話番号');
+			mArr.push(rows[i].a_tel.value);
+			if(rows[i].a_fax){
+				mArr.push('ＦＡＸ番号');
+				mArr.push(rows[i].a_fax.value);
+			}
+			if(rows[i].a_Web){
+				mArr.push('ホームページ');
+				mArr.push(rows[i].a_Web.value);
+			}
+		}else if(rows[i].a_secchisha){
+				mArr.push('設置者');
+				mArr.push(rows[i].a_secchisha.value);
+		}else if(rows[i].y_encho){
+				mArr.push('園長');
+				mArr.push(rows[i].y_encho.value);
+		}else if(rows[i].a_sonotaD){
+			var sonotaL = "説明その他";
+			if(rows[i].a_sonotaL){
+				sonotaL = rows[i].a_sonotaL.value ;
+			}
+			mArr.push(sonotaL);
+			mArr.push(rows[i].a_sonotaD.value);
+		}else if(rows[i].h_syubetsu){
+			var h_setsumei = " －－－";
+			if(rows[i].h_setsumei){
+				h_setsumei = rows[i].h_setsumei.value ;
+			}
+			mArr.push(rows[i].h_syubetsu.value);
+			mArr.push(h_setsumei);
+		}else if(rows[i].h_tatemono){
+			mArr.push('建物面積');
+			mArr.push(rows[i].h_tatemono.value);
+			if(rows[i].h_shikichi){
+				mArr.push('敷地面積');
+				mArr.push(rows[i].h_shikichi.value);
+			}
+		}else if(rows[i].h_dai3sya){
+			mArr.push('第三者評価');
+			mArr.push(rows[i].h_dai3sya.value + '（' + rows[i].h_dai3date.value + '）');
+			if(rows[i].h_dai3URL){
+				mArr.push('第三者評価の結果');
+				mArr.push(rows[i].h_dai3URL.value);
+			}
+		}else if(rows[i].h_syuyouninzu){
+			mArr.push(rows[i].h_syuyou.value);
+			mArr.push(rows[i].h_syuyouninzu.value);
+		}else if(rows[i].h_machi_ninzu){
+			mArr.push('入所待ち人数' + rows[i].h_machi.value);
+			mArr.push(rows[i].h_machi_ninzu.value);
+			
+			if(rows[i].h_machi_meta){
+				mArr.push('入所待ち人数確認日付');
+				mArr.push(rows[i].h_machi_meta.value);
+			}
+		}else if(rows[i].h_kanou_ninzu){
+			mArr.push('入所可能人数' + rows[i].h_kanou.value);
+			mArr.push(rows[i].h_kanou_ninzu.value);
+			
+			if(rows[i].h_kanou_meta){
+				mArr.push('入所可能人数確認日付');
+				mArr.push(rows[i].h_kanou_meta.value);
+			}
+		}else if(rows[i].h_nyusyojidou_ninzu){
+			mArr.push('入所児童数' + rows[i].h_nyusyojidou.value);
+			mArr.push(rows[i].h_nyusyojidou_ninzu.value);
+			
+			if(rows[i].h_nyusyojidou_meta){
+				mArr.push('入所児童数確認日付');
+				mArr.push(rows[i].h_nyusyojidou_meta.value);
+			}
+		}else if(rows[i].y_bikou){
+			mArr.push('備考');
+			mArr.push(rows[i].y_bikou.value);
+		}else if(rows[i].y_ryokins){
+			mArr.push('料金' + rows[i].y_ryokins.value);
+			mArr.push(rows[i].y_ryokin.value);
+		}else if(rows[i].y_ninka){
+			mArr.push('認可年月日');
+			mArr.push(rows[i].y_ninka.value);
+		}
+	}
+	
+	<!-- ★★★★★★★★★★　ここからmtext3に書き込み ★★★★★★★★★　-->
+	
+	var mtext3 = "<div style='text-align:right;'><a class='button-link' href='javascript:void(0);' onclick='closeModal();'>×</a></div><table class='modal_table'>";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="施設ＩＤ"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="施設名"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var ku = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="行政区"){
+			ku =  mArr[i+1] ;
+			break;
+		}
+	}
+	var yubin = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="郵便番号"){
+			yubin =   "〒" + mArr[i+1] ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="所在地"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + yubin + " （" + ku + "）" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var shikou = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="私立・公立"){
+			shikou = "（" + mArr[i+1] + "）" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="事業種別"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + shikou + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="新制度移行園"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="認定こども園"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="類型"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="ホームページ"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td><a href='" + mArr[i+1] + "' target='_blank'>" + mArr[i+1] + "<a/></td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="受入年齢"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var teiin0 = "";
+	var teiin1 = "";
+	var teiin2 = "";
+	var teiin3 = "";
+	var teiin4 = "";
+	var teiin5 = "";
+	var teiinYMD = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員0歳児"){
+			teiin0 = "0歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員1歳児"){
+			teiin1 = "1歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員2歳児"){
+			teiin2 = "2歳児:" +  mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員3歳児"){
+			teiin3 = "3歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員4歳児"){
+			teiin4 = "4歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員5歳児"){
+			teiin5 = "5歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="定員確認日付"){
+			teiinYMD = "<span style='color:red;'>（" + mArr[i+1] + "現在）</span>";
+			break;
+		}
+	}
+	if((teiin0 + teiin1 + teiin2 + teiin3 + teiin4 + teiin5) != ""){
+		mtext3 += "<tr><th>定員</th><td>" + teiin0 + teiin1 + teiin2 + teiin3 + teiin4 + teiin5 + "</td></tr>";
+	}
+	var machi0 = "";
+	var machi1 = "";
+	var machi2 = "";
+	var machi3 = "";
+	var machi4 = "";
+	var machi5 = "";
+	var machiYMD = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数0歳児"){
+			machi0 = "0歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数1歳児"){
+			machi1 = "1歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数2歳児"){
+			machi2 = "2歳児:" +  mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数3歳児"){
+			machi3 = "3歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数4歳児"){
+			machi4 = "4歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数5歳児"){
+			machi5 = "5歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所待ち人数確認日付"){
+			machiYMD = "<span style='color:red;'>（" + mArr[i+1] + "現在）</span>";
+			break;
+		}
+	}
+	if((machi0 + machi1 + machi2 + machi3 + machi4 + machi5) != ""){
+		mtext3 += "<tr><th>入所待ち人数<br>" + machiYMD + "</th><td>" + machi0 + machi1 + machi2 + machi3 + machi4 + machi5 + "</td></tr>";
+	}
+	var kanou0 = "";
+	var kanou1 = "";
+	var kanou2 = "";
+	var kanou3 = "";
+	var kanou4 = "";
+	var kanou5 = "";
+	var kanouYMD = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数0歳児"){
+			kanou0 = "0歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数1歳児"){
+			kanou1 = "1歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数2歳児"){
+			kanou2 = "2歳児:" +  mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数3歳児"){
+			kanou3 = "3歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数4歳児"){
+			kanou4 = "4歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数5歳児"){
+			kanou5 = "5歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所可能人数確認日付"){
+			kanouYMD = "<span style='color:red;'>（" + mArr[i+1] + "現在）</span>";
+			break;
+		}
+	}
+	if((kanou0 + kanou1 + kanou2 + kanou3 + kanou4 + kanou5) != ""){
+		mtext3 += "<tr><th>入所可能人数<br>" + kanouYMD + "</th><td>" + kanou0 + kanou1 + kanou2 + kanou3 + kanou4 + kanou5 + "</td></tr>";
+	}
+	var nyusyojidou0 = "";
+	var nyusyojidou1 = "";
+	var nyusyojidou2 = "";
+	var nyusyojidou3 = "";
+	var nyusyojidou4 = "";
+	var nyusyojidou5 = "";
+	var nyusyojidouYMD = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数0歳児"){
+			nyusyojidou0 = "0歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数1歳児"){
+			nyusyojidou1 = "1歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数2歳児"){
+			nyusyojidou2 = "2歳児:" +  mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数3歳児"){
+			nyusyojidou3 = "3歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数4歳児"){
+			nyusyojidou4 = "4歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数5歳児"){
+			nyusyojidou5 = "5歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="入所児童数確認日付"){
+			nyusyojidouYMD = "<span style='color:red;'>（" + mArr[i+1] + "現在）</span>";
+			break;
+		}
+	}
+	if((nyusyojidou0 + nyusyojidou1 + nyusyojidou2 + nyusyojidou3 + nyusyojidou4 + nyusyojidou5) != ""){
+		mtext3 += "<tr><th>入所児童数<br>" + nyusyojidouYMD + "</th><td>" + nyusyojidou0 + nyusyojidou1 + nyusyojidou2 + nyusyojidou3 + nyusyojidou4 + nyusyojidou5 + "</td></tr>";
+	}
+	var teiin1gou3 = "";
+	var teiin1gou4 = "";
+	var teiin1gou5 = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="1号定員3歳児"){
+			teiin1gou3 = "3歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="1号定員4歳児"){
+			teiin1gou4 = "4歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="1号定員5歳児"){
+			teiin1gou5 = "5歳児:" + mArr[i+1] + "人　";
+			break;
+		}
+	}
+	if((teiin1gou3 + teiin1gou4 + teiin1gou5) != ""){
+		mtext3 += "<tr><th>１号（幼稚園型）の定員</th><td>" + teiin1gou3 + teiin1gou4 + teiin1gou5 + "</td></tr>";
+	}
+
+	///// 満３歳児受け入れは，無しも有りも全部「0」になっちゃっているので表示させない /////
+	/*  
+	var ukeirekahi = "" ;
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="満3歳児受入"){
+			if(mArr[i+1] == "0"){
+				ukeirekahi = "無し";
+			}else{
+				ukeirekahi = "有り";
+			}
+		}
+	}
+	*/
+
+	var hoikuryo3man = "";
+	var hoikuryo3 = "";
+	var hoikuryo4 = "";
+	var hoikuryo5 = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金保育料満3歳児"){
+			hoikuryo3man = "満3歳児:" + mArr[i+1] + "<br>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金保育料3歳児"){
+			hoikuryo3 = "3歳児:" + mArr[i+1] + "　" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金保育料4歳児"){
+			hoikuryo4 = "4歳児:" +  mArr[i+1] + "　" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金保育料5歳児"){
+			hoikuryo5 = "5歳児:" + mArr[i+1] ;
+			break;
+		}
+	}
+	if((hoikuryo3man + hoikuryo3 + hoikuryo4 + hoikuryo5) != ""){
+		mtext3 += "<tr><th>保育料</th><td>" + hoikuryo3man + hoikuryo3 + hoikuryo4 + hoikuryo5 + "</td></tr>";
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="預かり保育の有無"){
+			mtext3 += "<tr><th>預かり保育の有無</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="預かり保育時間"){
+			mtext3 += "<tr><th>預かり保育時間</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金預かり保育料"){
+			mtext3 += "<tr><th>預かり保育料</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="預かり保育その他"){
+			mtext3 += "<tr><th>預かり保育その他</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var nyuenryo3 = "";
+	var nyuenryo4 = "";
+	var nyuenryo5 = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金入園料3歳児"){
+			nyuenryo3 = "3歳児:" + mArr[i+1] + "　" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金入園料4歳児"){
+			nyuenryo4 = "4歳児:" +  mArr[i+1] + "　" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="料金入園料5歳児"){
+			nyuenryo5 = "5歳児:" + mArr[i+1] ;
+			break;
+		}
+	}
+	if((nyuenryo3 + nyuenryo4 + nyuenryo5) != ""){
+		mtext3 += "<tr><th>入園料</th><td>" + nyuenryo3 + nyuenryo4 + nyuenryo5 + "</td></tr>";
+	}
+
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="休園日"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var hyojun_do = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="保育標準時間土曜日"){
+			hyojun_do = "　土曜日:" + mArr[i+1] ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="保育標準時間平日"){
+			mtext3 += "<tr><th>保育標準時間</th><td>平日:" + mArr[i+1] + hyojun_do + "</td></tr>";
+			break;
+		}
+	}
+	var tanjikan_do = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="保育短時間土曜日"){
+			tanjikan_do = "　土曜日:" + mArr[i+1] ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="保育短時間平日"){
+			mtext3 += "<tr><th>保育短時間</th><td>平日:" + mArr[i+1] + tanjikan_do + "</td></tr>";
+			break;
+		}
+	}
+	var kaishojikan_do = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="開所時間（土曜日）"){
+			kaishojikan_do = "　土曜日:" + mArr[i+1] ;
+			break;
+		}
+	}
+	var kaishojikan_nichi = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="開所時間（日・祝日）"){
+			kaishojikan_nichi = "　日・祝日:" + mArr[i+1] ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="開所時間（平日）"){
+			mtext3 += "<tr><th>開所時間</th><td>平日:" + mArr[i+1] + kaishojikan_do  + kaishojikan_nichi + "</td></tr>";
+			break;
+		}
+	}
+	
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="行き方"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var fax = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="ＦＡＸ番号"){
+			fax =   "　FAX:" + mArr[i+1] ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="電話番号"){
+			mtext3 += "<tr><th>連絡先</th><td>TEL:" + mArr[i+1] + fax + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="設置者"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="園長"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var sikichi = "";
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="敷地面積"){
+			sikichi =  "　敷地:" + mArr[i+1] + "㎡" ;
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="建物面積"){
+			mtext3 += "<tr><th>面積</th><td>建物:" + mArr[i+1] + "㎡" + sikichi + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="認可年月日"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="エコ保育所"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="第三者評価"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="第三者評価の結果"){
+			if(mArr[i+1].slice(0,4)=="http"){
+				mtext3 += "<tr><th>" + mArr[i] + "</th><td><a href='" + mArr[i+1] + "' target='_blank'>" + mArr[i+1] + "<a/></td></tr>";
+				break;
+			}else{
+				mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+				break;
+			}
+		}
+	}
+	//////////////////////////////////////////////////////////////////////////
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(!(mArr[i]=="施設情報の更新日") && !(mArr[i]=="施設ＩＤ") && !(mArr[i]=="施設名") && !(mArr[i]=="ホームページ") && !(mArr[i]=="行政区") && !(mArr[i]=="郵便番号") && !(mArr[i]=="所在地") && !(mArr[i]=="行き方") && !(mArr[i]=="ＦＡＸ番号") && !(mArr[i]=="電話番号") && !(mArr[i]=="設置者") && !(mArr[i]=="園長") && !(mArr[i]=="敷地面積") && !(mArr[i]=="建物面積") && !(mArr[i]=="認可年月日") && !(mArr[i]=="第三者評価") && !(mArr[i]=="第三者評価の結果") && !(mArr[i]=="説明その他") && !(mArr[i]=="備考")){
+			if((mArr[i].slice(0,6)!="入所待ち人数") && (mArr[i].slice(0,6)!="入所可能人数") && (mArr[i].slice(0,5)!="入所児童数") && (mArr[i].slice(0,2)!="定員") && (mArr[i].slice(0,4)!="1号定員") && (mArr[i].slice(0,5)!="料金保育料") && (mArr[i].slice(0,5)!="料金入園料")){
+				if(!(mArr[i]=="エコ保育所") && !(mArr[i]=="受入年齢") && !(mArr[i]=="預かり保育の有無") && !(mArr[i]=="預かり保育時間") && !(mArr[i]=="料金預かり保育料") && !(mArr[i]=="預かり保育その他") && !(mArr[i]=="満3歳児受入") && !(mArr[i]=="休園日") && !(mArr[i]=="保育標準時間土曜日") && !(mArr[i]=="保育標準時間平日") && !(mArr[i]=="保育短時間土曜日") && !(mArr[i]=="保育短時間平日") && !(mArr[i]=="開所時間（土曜日）") && !(mArr[i]=="開所時間（平日）") && !(mArr[i]=="開所時間（日・祝日）")){
+					if(!(mArr[i]=="事業種別") && !(mArr[i]=="私立・公立") && !(mArr[i]=="新制度移行園") && !(mArr[i]=="認定こども園") && !(mArr[i]=="類型")){
+						mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+					}
+				}	
+			}
+		}
+	}
+
+	///////////////////以下，複数可能性あり（breakしない）////////////////////
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="説明その他"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+		}
+	}
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="備考"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+		}
+	}
+	//////////////////////////////////////////////////////////////////////////
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="施設情報の更新日"){
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	mtext3 += "</table>";
+	document.getElementById('modal-content').innerHTML = mtext3 ;
+	mArrText = JSON.stringify(mArr,undefined,1);
+} 
+
+</script>
+</head>
+<body onload="getCSV()">
+<div id="kensaku"><a href="javascript:void(0);" onclick="openModal(9999999999999)" class="cp_btn">施設検索</a></div>
+<div id="modal-content"></div>
+<div id="mapcontainer" style="height:100%;width:100%;">
+	<div style="color:#fff;text-align:center; padding-top: 100px;"><h1>横浜市保育所＆幼稚園マップ</h1><br><br>Masahiro Hayashi
+		<div class='loader' style="margin-top:150px;">Loading...</div>
+	</div>
+</div>
+<div id="results" style="font-size:small;"></div>
+<script src="jquery.min.js"></script>
+<script src="modal2.js"></script>
+</body>
+</html>
