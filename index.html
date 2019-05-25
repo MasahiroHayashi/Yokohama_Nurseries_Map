@@ -1205,7 +1205,7 @@ function onSuccessQuery2(text,ii) { // 結果(JSON文字列)を配列に格納
 	}
 	for(let i=0 ; i<mArr.length ; i=i+2) {
 		if(mArr[i]=="ホームページ"){
-			mtext3 += "<tr><th>" + mArr[i] + "</th><td><a href='" + mArr[i+1] + "' target='_blank'>" + mArr[i+1] + "<a/></td></tr>";
+			mtext3 += "<tr><th>" + mArr[i] + "</th><td><a href='" + mArr[i+1] + "' target='_blank'>" + mArr[i+1] + "</a></td></tr>";
 			break;
 		}
 	}
@@ -1696,6 +1696,18 @@ function onSuccessQuery2(text,ii) { // 結果(JSON文字列)を配列に格納
 	for(let i=0 ; i<mArr.length ; i=i+2) {
 		if(mArr[i]=="施設情報の更新日"){
 			mtext3 += "<tr><th>" + mArr[i] + "</th><td>" + mArr[i+1] + "</td></tr>";
+			break;
+		}
+	}
+	var subject ;
+	for(let i=0 ; i<mArr.length ; i=i+2) {
+		if(mArr[i]=="施設ＩＤ"){
+			if(String(mArr[i+1]).length == 9 ){
+				subject = "https://data.city.yokohama.lg.jp/lod/v2/保育所型/" + mArr[i+1] ;
+			}else{
+				subject = "https://data.city.yokohama.lg.jp/lod/v2/幼稚園型/" + mArr[i+1] ;
+			}
+			mtext3 += "<tr><th>施設の全データ<br>(JSON-LD / UTF-16)</th><td>" + "<a href='" + subject + "' target='_blank'>" + subject + "</a>" + "</td></tr>";
 			break;
 		}
 	}
