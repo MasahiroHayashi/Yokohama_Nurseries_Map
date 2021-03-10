@@ -30,5 +30,5 @@ leaflet.css
 modal2.js
 imagesディレクトリ内のデータ
 
-
+テスト
 
